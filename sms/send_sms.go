@@ -9,7 +9,9 @@ import (
 	"strings"
 	"log"
 	"encoding/json"
-	"github.com/parnurzeal/gorequest"
+	"net/http"
+	"net/url"
+	"strconv"
 )
 
 var TEXTLOCAL_USERNAME string
@@ -38,42 +40,36 @@ func getMessage(mobile_number string) (string, error) {
 	return "Thank you for registering! Login with \nUsername:" + mobile_number + "\n Password:" + GetPassword(mobile_number), nil
 }
 
-type Message struct {
-	Hash     string  `json:"hash"`
-	Sender   string  `json:"sender"`
-	Username string  `json:"username"`
-	Text     string  `json:"message"`
-	Custom   string  `json:"custom,omitempty"`
-	Test     bool    `json:"test,omitempty"`
-}
-
-func NewMessage(message string, custom string, test bool) Message {
-	return Message{
-		Hash: TEXTLOCAL_HASH,
-		Sender: TEXTLOCAL_SENDER,
-		Username: TEXTLOCAL_USERNAME,
-		Text: message,
-		Custom: custom,
-		Test: test,
+func NewMessage(mobile_number string, message string, custom string, test bool) url.Values {
+	v := url.Values{}
+	v.Set("hash", TEXTLOCAL_HASH)
+	v.Set("username", TEXTLOCAL_USERNAME)
+	v.Set("sender", TEXTLOCAL_SENDER)
+	v.Set("numbers", mobile_number)
+	v.Set("message", message)
+	v.Set("test", strconv.FormatBool(test))
+	if strings.Compare(custom, "") != 0 {
+		v.Set("custom", custom)
 	}
+	return v
 }
 
 func SendMessage(m string) (bool, error) {
-	mes, err := getMessage(m)
+	msg, err := getMessage(m)
 	if err != nil {
 		return false, err
 	}
-	b := NewMessage(mes, "", true)
-	c := gorequest.New()
-	r := c.Post("http://api.textlocal.in/send/")
-	body, err := json.Marshal(&b)
-	os.Stdout.Write(body)
+	b := NewMessage(m, msg, "", true)
+	resp, err := http.PostForm("http://api.textlocal.in/send/", b)
 	if err != nil {
 		return false, err
 	}
-	req_body := string(body[0:len(body)])
-	r.Send(req_body)
-	_, resp_body, errs := r.End()
-	fmt.Println(resp_body, errs)
+	resp_decoder := json.NewDecoder(resp.Body)
+	var response map[string]interface{}
+	err = resp_decoder.Decode(&response)
+	if err != nil {
+		return false, err
+	}
+	fmt.Println(response)
 	return true, nil
 }
