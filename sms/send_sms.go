@@ -26,18 +26,18 @@ func init()  {
 		log.Fatal("Environment variables not set")
 	}
 }
-func GetPassword(mobile_number string)(string){
+func Password(mobile_number string)(string){
 	hash := md5.Sum([]byte(mobile_number))
 	h := fmt.Sprintf("%x", hash)
 	return h[0:6]
 }
 
-func getMessage(mobile_number string) (string, error) {
+func message(mobile_number string) (string, error) {
 	if utf8.RuneCountInString(mobile_number) != 10 {
 		err := errors.New("Invalid Mobile Number/Password")
 		return "", err
 	}
-	return "Thank you for registering! Login with \nUsername:" + mobile_number + "\n Password:" + GetPassword(mobile_number), nil
+	return "Thank you for registering! Login with \nUsername:" + mobile_number + "\n Password:" + Password(mobile_number), nil
 }
 
 func NewMessage(mobile_number string, message string, custom string, test bool) url.Values {
@@ -55,7 +55,7 @@ func NewMessage(mobile_number string, message string, custom string, test bool) 
 }
 
 func SendMessage(m string) (bool, error) {
-	msg, err := getMessage(m)
+	msg, err := message(m)
 	if err != nil {
 		return false, err
 	}
