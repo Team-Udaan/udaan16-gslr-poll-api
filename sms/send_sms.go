@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"bytes"
 )
 
 var TEXTLOCAL_USERNAME string
@@ -54,6 +55,30 @@ func NewMessage(mobile_number string, message string, custom string, test bool) 
 	return v
 }
 
+type TextlocalError struct {
+	Message string `json:"message"`
+	Code    int `json:"code"`
+}
+
+type TextlocalResponse struct {
+	Status string          `json:"status"`
+	Errors []TextlocalError  `json:"errors"`
+}
+
+func (t *TextlocalResponse)ErrorString() string {
+	b := bytes.NewBufferString("")
+	encoder := json.NewEncoder(b)
+	encoder.Encode(t.Errors)
+	return b.String()
+}
+
+func (t *TextlocalResponse)String() string {
+	b := bytes.NewBufferString("")
+	encoder := json.NewEncoder(b)
+	encoder.Encode(t)
+	return b.String()
+}
+
 func SendMessage(m string) (bool, error) {
 	msg, err := message(m)
 	if err != nil {
@@ -65,11 +90,12 @@ func SendMessage(m string) (bool, error) {
 		return false, err
 	}
 	resp_decoder := json.NewDecoder(resp.Body)
-	var response map[string]interface{}
+	var response TextlocalResponse
 	err = resp_decoder.Decode(&response)
 	if err != nil {
 		return false, err
+	} else if response.Status == "failure" {
+		return false, errors.New(response.ErrorString())
 	}
-	fmt.Println(response)
 	return true, nil
 }
