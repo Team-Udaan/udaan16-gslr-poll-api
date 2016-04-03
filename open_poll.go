@@ -41,13 +41,19 @@ func OpenPollHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	fmt.Println("Result ", result)
-	result, err = redisClient.Get("current").Result()
+	current, err := redisClient.Get("current").Result()
 	if err != nil {
 		RespondHTTP(w, err.Error(), 500)
 		return
 	}
-	if result != "waiting" {
-	//	TODO Broadcast closing of current event
+	if current != "waiting" {
+		clients.Broadcast(Command{
+			Name: "event",
+			Data: Command{
+				Name: current,
+			Data: "close",
+			},
+		})
 	}
 	result, err = redisClient.Set("current", reqBody["event"], 0).Result()
 	if err != nil {
@@ -55,6 +61,13 @@ func OpenPollHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// TODO Broadcast the opening of current event
+	clients.Broadcast(Command{
+			Name: "event",
+			Data: Command{
+				Name: reqBody["event"],
+			Data: "open",
+			},
+		})
 	fmt.Println("Result ", result)
 	RespondHTTP(w, reqBody["event"] + " open for polling", 200)
 }

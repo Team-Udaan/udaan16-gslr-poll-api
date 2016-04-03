@@ -61,3 +61,9 @@ func (c *Clients) Add(ws *WsConn) {
 func (c *Clients)Remove(ws *WsConn) {
 	delete(c.Ws, ws.Hash)
 }
+
+func (c *Clients)Broadcast(data interface{})  {
+	for _, client := range c.Ws {
+		client.Write(data)
+	}
+}
