@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/gorilla/websocket"
 	"gopkg.in/mgo.v2/bson"
+	"fmt"
 )
 
 type WsConn struct {
@@ -14,7 +15,8 @@ type WsConn struct {
 }
 
 func NewWsConn(c *websocket.Conn) WsConn {
-	hash := bson.NewObjectId().Hex()[0:6]
+	hash := bson.NewObjectId().Hex()
+	hash = hash[len(hash) - 7:]
 	return WsConn{
 		Hash: hash,
 		Conn: c,
@@ -63,7 +65,8 @@ func (c *Clients)Remove(ws *WsConn) {
 }
 
 func (c *Clients)Broadcast(data interface{})  {
-	for _, client := range c.Ws {
+	for hash, client := range c.Ws {
+		fmt.Println(hash)
 		client.Write(data)
 	}
 }
