@@ -1,4 +1,5 @@
-package sms
+package main
+
 import (
 	"testing"
 	"strings"

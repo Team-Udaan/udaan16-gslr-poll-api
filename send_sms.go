@@ -1,13 +1,10 @@
-package sms
+package main
 
 import (
-	"unicode/utf8"
 	"errors"
 	"crypto/md5"
 	"fmt"
-	"os"
 	"strings"
-	"log"
 	"encoding/json"
 	"net/http"
 	"net/url"
@@ -19,26 +16,18 @@ var TEXTLOCAL_USERNAME string
 var TEXTLOCAL_HASH string
 var TEXTLOCAL_SENDER string
 
-func init()  {
-	TEXTLOCAL_USERNAME = os.Getenv("TEXTLOCAL_USERNAME")
-	TEXTLOCAL_HASH = os.Getenv("TEXTLOCAL_HASH")
-	TEXTLOCAL_SENDER = os.Getenv("TEXTLOCAL_SENDER")
-	if strings.Compare(TEXTLOCAL_USERNAME, "") == 0 && strings.Compare(TEXTLOCAL_HASH, "") == 0 && strings.Compare(TEXTLOCAL_SENDER, "") == 0 {
-		log.Fatal("Environment variables not set")
-	}
-}
 func Password(mobile_number string)(string){
 	hash := md5.Sum([]byte(mobile_number))
 	h := fmt.Sprintf("%x", hash)
-	return h[0:6]
+	return h[0:4]
 }
 
-func message(mobile_number string) (string, error) {
-	if utf8.RuneCountInString(mobile_number) != 10 {
-		err := errors.New("Invalid Mobile Number/Password")
+func message(mobileNumber string) (string, error) {
+	if n := len(mobileNumber); n != 10 {
+		err := errors.New("Invalid Mobile Number " + strconv.Itoa(n))
 		return "", err
 	}
-	return "Thank you for registering! Login with \nUsername:" + mobile_number + "\n Password:" + Password(mobile_number), nil
+	return "Thank you for registering in GS vs LR Live Online Poll! Login with \nUsername: " + mobileNumber + "\nPassword: " + Password(mobileNumber), nil
 }
 
 func NewMessage(mobile_number string, message string, custom string, test bool) url.Values {
@@ -84,6 +73,7 @@ func SendMessage(m string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
+	//TODO Remove true in production
 	b := NewMessage(m, msg, "", true)
 	resp, err := http.PostForm("http://api.textlocal.in/send/", b)
 	if err != nil {
