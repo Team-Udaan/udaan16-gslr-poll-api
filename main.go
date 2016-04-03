@@ -8,11 +8,17 @@ import (
 	"os"
 	"strings"
 	"log"
+	"gopkg.in/redis.v3"
 )
 
 var clients *Clients = &Clients{}
 var Connections chan *WsConn
 var CONFIG_FILE *string
+var redisClient = redis.NewClient(&redis.Options{
+	Addr: "localhost:6379",
+	Password: "",
+	DB: 0,
+})
 
 func init() {
 	CONFIG_FILE = flag.String("config", "sample_config.txt", "give file path of configuration file")
