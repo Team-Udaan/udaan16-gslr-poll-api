@@ -27,11 +27,15 @@ func Load(fileName string){
 	}
 	buffer := bytes.NewBuffer(byteConfig)
 	stringData := buffer.String()
-	result, err := redisClient.Set("eventCounter", 1, 0).Result()
+	//TODO Add functionality where a "next" keyword in openpoll body, stops the current event and starts the next in line
+	//_, err = redisClient.Set("eventCounter", 0, 0).Result()
+	//if err != nil {
+	//	log.Fatal(err)
+	//}
+	_, err = redisClient.Set("current", "waiting", 0).Result()
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println(result)
 	for _, datum := range strings.Split(stringData, "\n\n") {
 		if strings.HasPrefix(datum, "#") {
 			continue

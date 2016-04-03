@@ -9,40 +9,57 @@ func InitInteractor(connections chan *WsConn) {
 		for {
 			ws := <- connections
 			clients.Add(ws)
-			go Launch(ws)
+			//go Launch(ws)
 		}
 	}()
 }
 
 func Launch(ws *WsConn) {
 	for {
-		var c Command
-		if err := ws.Conn.ReadJSON(&c); err != nil {
-			ws.Conn.WriteJSON(Command{
-				Name: "error",
-				Data: err.Error(),
-			})
-		}
-		if c.Name == "echo" {
-			fmt.Println("ECHO EVENT")
-			ws.Conn.WriteJSON(Command{
-				Name: "echo",
-				Data: c.Data,
-			})
-		} else if c.Name == "meta" {
-			go MetaHandler(ws.Conn, nil)
-		} else if c.Name == "exit" {
-			fmt.Println("CLOSE EVENT")
-			clients.Remove(ws)
-			ws.Conn.Close()
-		} else if c.Name == "register" {
-			go RegisterHandler(ws, &c)
-		} else if c.Name == "login" {
-			go LoginHandler(ws, &c)
-		} else if c.Name == "event" {
-		//	respond with current event
-		} else if c.Name == "vote" {
-		//	increment counter
+		select {
+		case value := <- ws.done:
+			if value == true {
+				clients.Remove(ws)
+				return
+			}
+		default:
+			var c Command
+			if err := ws.Conn.ReadJSON(&c); err != nil {
+				ws.Write(Command{
+					Name: "error",
+					Data: err.Error(),
+				})
+			}
+			if c.Name == "echo" {
+				fmt.Println("ECHO EVENT")
+				ws.Write(Command{
+					Name: "echo",
+					Data: c.Data,
+				})
+			} else if c.Name == "meta" {
+				go MetaHandler(ws, nil)
+			} else if c.Name == "exit" {
+				ws.Close()
+			} else if c.Name == "register" {
+				go RegisterHandler(ws, &c)
+			} else if c.Name == "login" {
+				//Not safe to make this a goroutine
+				LoginHandler(ws, &c)
+			} else if c.Name == "event" {
+				result, err := redisClient.Get("current").Result()
+				if err != nil {
+					ws.Write(Command{
+						Name: "error",
+						Data: err.Error(),
+					})
+				}
+				ws.Write(Command{
+					Name: "event",
+					Data: result,
+				})
+			} else if c.Name == "vote" {
+			//	increment counter
+			}
 		}
 	}
 }

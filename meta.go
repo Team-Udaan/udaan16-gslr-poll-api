@@ -1,10 +1,5 @@
 package main
 
-import (
-	"github.com/gorilla/websocket"
-	"fmt"
-)
-
 type teams struct {
 	Name   string `json:"name"`
 	Mascot string `json:"mascot"`
@@ -17,8 +12,8 @@ type Meta struct {
 	LR   teams `json:"lr"`
 }
 
-func MetaHandler(conn *websocket.Conn, c *Command)  {
-	err := conn.WriteJSON(Command{
+func MetaHandler(conn *WsConn, c *Command)  {
+	conn.Write(Command{
 		Name: "meta",
 		Data: Meta{
 			NightName: CONFIGURATION["night-name"][0],
@@ -33,7 +28,4 @@ func MetaHandler(conn *websocket.Conn, c *Command)  {
 			},
 		},
 	})
-	if err != nil {
-		fmt.Println(err.Error())
-	}
 }
