@@ -44,7 +44,8 @@ func EventHandler(client *WsConn, c *Command) {
 		})
 		return
 	}
-	if current == "waiting"{
+	voted, _ := redisClient.Get(client.mobile).Result()
+	if current == "waiting" || voted != "" {
 		client.Write(Command{
 			Name: "event",
 			Data: "waiting",

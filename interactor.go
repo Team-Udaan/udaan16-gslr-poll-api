@@ -47,19 +47,8 @@ func Launch(ws *WsConn) {
 				LoginHandler(ws, &c)
 			} else if c.Name == "event" {
 				EventHandler(ws, &c)
-				//result, err := redisClient.Get("current").Result()
-				//if err != nil {
-				//	ws.Write(Command{
-				//		Name: "error",
-				//		Data: err.Error(),
-				//	})
-				//}
-				//ws.Write(Command{
-				//	Name: "event",
-				//	Data: result,
-				//})
 			} else if c.Name == "vote" {
-			//	increment counter
+				VoteHandler(ws, &c)
 			}
 		}
 	}

@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"os"
 	"encoding/json"
-	"fmt"
 )
 
 func OpenPollHandler(w http.ResponseWriter, r *http.Request) {
