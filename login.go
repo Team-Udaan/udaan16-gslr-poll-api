@@ -17,7 +17,7 @@ func LoginHandler(client *WsConn, c *Command){
 			},
 		})
 		client.Register()
-		client.Authenticate()
+		client.Authenticate(fmt.Sprintf("%s", m))
 		return
 	}
 	err := client.Conn.WriteJSON(Command{

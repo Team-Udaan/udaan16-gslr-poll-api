@@ -46,17 +46,18 @@ func Launch(ws *WsConn) {
 				//Not safe to make this a goroutine
 				LoginHandler(ws, &c)
 			} else if c.Name == "event" {
-				result, err := redisClient.Get("current").Result()
-				if err != nil {
-					ws.Write(Command{
-						Name: "error",
-						Data: err.Error(),
-					})
-				}
-				ws.Write(Command{
-					Name: "event",
-					Data: result,
-				})
+				EventHandler(ws, &c)
+				//result, err := redisClient.Get("current").Result()
+				//if err != nil {
+				//	ws.Write(Command{
+				//		Name: "error",
+				//		Data: err.Error(),
+				//	})
+				//}
+				//ws.Write(Command{
+				//	Name: "event",
+				//	Data: result,
+				//})
 			} else if c.Name == "vote" {
 			//	increment counter
 			}

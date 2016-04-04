@@ -3,11 +3,11 @@ package main
 import (
 	"github.com/gorilla/websocket"
 	"gopkg.in/mgo.v2/bson"
-	"fmt"
 )
 
 type WsConn struct {
 	done            chan bool
+	mobile          string
 	Hash            string
 	Conn            *websocket.Conn
 	Registered      bool
@@ -29,7 +29,8 @@ func (w *WsConn)Register() {
 	w.Registered = true
 }
 
-func (w *WsConn)Authenticate() {
+func (w *WsConn)Authenticate(m string) {
+	w.mobile = m
 	w.Authenticated = true
 }
 
@@ -65,8 +66,7 @@ func (c *Clients)Remove(ws *WsConn) {
 }
 
 func (c *Clients)Broadcast(data interface{})  {
-	for hash, client := range c.Ws {
-		fmt.Println(hash)
+	for _, client := range c.Ws {
 		client.Write(data)
 	}
 }

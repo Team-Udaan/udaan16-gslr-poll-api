@@ -42,12 +42,19 @@ func Load(fileName string){
 		}
 		field := strings.Split(datum, "\n")
 		if field[0] == "events" {
-			for count:=0; count < len(field[1:]); count += 3{
-				_, err = redisClient.RPush("events", field[count + 1]).Result()
+			events := field[1:]
+			for count:=0; count < len(events); count += 3{
+				_, err = redisClient.RPush("events", events[count]).Result()
 				if err != nil {
 					log.Fatal(err)
 				}
-				_, err = redisClient.Set(field[count + 1], "waiting", 0).Result()
+				gsTeamName := strings.TrimPrefix(events[count + 1], "GS: ")
+				lrTeamName := strings.TrimPrefix(events[count + 2], "LR: ")
+				_, err = redisClient.HSet(events[count], "gs", gsTeamName).Result()
+				if err != nil {
+					log.Fatal(err)
+				}
+				_, err = redisClient.HSet(events[count], "lr", lrTeamName).Result()
 				if err != nil {
 					log.Fatal(err)
 				}

@@ -16,7 +16,6 @@ func OpenPollHandler(w http.ResponseWriter, r *http.Request) {
 		RespondHTTP(w, err.Error(), 500)
 		return
 	}
-	fmt.Println(reqBody)
 	if(username != reqBody["username"] ||
 		password != reqBody["password"]) {
 		RespondHTTP(w, "Unauthorized", 401)
@@ -26,8 +25,8 @@ func OpenPollHandler(w http.ResponseWriter, r *http.Request) {
 		RespondHTTP(w, "'event' parameter missing in request body", 400)
 		return
 	}
-	event, err := redisClient.Get(reqBody["event"]).Result()
-	if event == "" {
+	event, err := redisClient.HGetAll(reqBody["event"]).Result()
+	if len(event) == 0 {
 		RespondHTTP(w, "No such event registered", 400)
 		return
 	}
@@ -35,27 +34,17 @@ func OpenPollHandler(w http.ResponseWriter, r *http.Request) {
 		RespondHTTP(w, err.Error(), 500)
 		return
 	}
-	result, err := redisClient.Set(event, "polling", 0).Result()
+	_, err = redisClient.HSet(reqBody["event"], "status", "polling").Result()
 	if err != nil {
 		RespondHTTP(w, err.Error(), 500)
 		return
 	}
-	fmt.Println("Result ", result)
-	current, err := redisClient.Get("current").Result()
+	_, err = redisClient.Set("current", reqBody["event"], 0).Result()
 	if err != nil {
 		RespondHTTP(w, err.Error(), 500)
 		return
 	}
-	if current != "waiting" {
-		clients.Broadcast(Command{
-			Name: "event",
-			Data: Command{
-				Name: current,
-			Data: "close",
-			},
-		})
-	}
-	result, err = redisClient.Set("current", reqBody["event"], 0).Result()
+	eventResponse, err := EventResponse(reqBody["event"])
 	if err != nil {
 		RespondHTTP(w, err.Error(), 500)
 		return
@@ -63,11 +52,7 @@ func OpenPollHandler(w http.ResponseWriter, r *http.Request) {
 	// TODO Broadcast the opening of current event
 	clients.Broadcast(Command{
 			Name: "event",
-			Data: Command{
-				Name: reqBody["event"],
-			Data: "open",
-			},
+			Data: eventResponse,
 		})
-	fmt.Println("Result ", result)
 	RespondHTTP(w, reqBody["event"] + " open for polling", 200)
 }
