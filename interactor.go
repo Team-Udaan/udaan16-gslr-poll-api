@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"strconv"
 )
 
 func InitInteractor(connections chan *WsConn) {
@@ -19,7 +20,12 @@ func InitInteractor(connections chan *WsConn) {
 func Launch(ws *WsConn) {
 	defer func() {
 		if r := recover(); r != nil {
-			fmt.Println("Recovered ", r)
+			logger.WriteString(strconv.Itoa(panicCount)+ ") " +
+			fmt.Sprintf("%s", r) + "\n" +
+			fmt.Sprintf("%s", ws.mobile) + "\n\n")
+			ws.Close()
+			clients.Remove(ws)
+			panicCount++
 		}
 	}()
 	for {

@@ -19,8 +19,16 @@ var redisClient = redis.NewClient(&redis.Options{
 	Password: "",
 	DB: 0,
 })
+var logger *os.File
+var err  error
+var panicCount int
 
 func init() {
+	logger, err = os.OpenFile("log.txt", os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0666)
+	if err != nil {
+		log.Fatal(err)
+	}
+	panicCount = 0
 	CONFIG_FILE = flag.String("config", "sample_config.txt", "give file path of configuration file")
 	flag.Parse()
 	fmt.Println(*CONFIG_FILE)
