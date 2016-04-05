@@ -53,7 +53,7 @@ func (w *WsConn) Write(data interface{}) {
 func (w *WsConn) Error(e error) {
 	w.Write(Command{
 		Name: "error",
-		Data: e,
+		Data: e.Error(),
 	})
 	w.Close()
 }
@@ -65,7 +65,7 @@ func (c *Clients) Add(ws *WsConn) {
 	c.Ws[ws.Hash] = ws
 	done := make(chan bool)
 	ws.done = done
-	Launch(ws)
+	go Launch(ws)
 }
 
 func (c *Clients)Remove(ws *WsConn) {
