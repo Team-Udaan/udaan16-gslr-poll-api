@@ -14,6 +14,8 @@ func InitInteractor(connections chan *WsConn) {
 	}()
 }
 
+//TODO panic recovery
+
 func Launch(ws *WsConn) {
 	for {
 		select {

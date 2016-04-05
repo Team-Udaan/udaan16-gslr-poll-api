@@ -58,6 +58,10 @@ func Load(fileName string){
 				if err != nil {
 					log.Fatal(err)
 				}
+				_, err = redisClient.HSet(events[count], "status", "waiting").Result()
+				if err != nil {
+					log.Fatal(err)
+				}
 			}
 		}
 		config[field[0]] = field[1:]
