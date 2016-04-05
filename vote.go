@@ -1,41 +1,29 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"errors"
+)
 
 //TODO write a common WriteError function to stop repeating error codes
 
 func VoteHandler(client *WsConn, c *Command){
 	if !client.Authenticated || !client.Registered || client.mobile == ""{
-		client.Write(Command{
-			Name: "error",
-			Data: "Unauthorized",
-		})
-		client.Close()
+		client.Error(errors.New("Unauthorized"))
 		return
 	}
 	currentEvent, _ := redisClient.Get("current").Result()
 	if currentEvent == "waiting" {
-		client.Write(Command{
-			Name: "error",
-			Data: "Waiting for next Event",
-		})
-		client.Close()
+		client.Error("Waiting for next Event")
 		return
 	}
 	voted, _ := redisClient.Get(client.mobile + ":" + currentEvent).Result()
 	if voted != "" {
-		client.Write(Command{
-			Name: "error",
-			Data: "Already Voted",
-		})
+		client.Error(errors.New("Already Vote"))
 		return
 	}
 	if c.Data != "gs" && c.Data != "ls" {
-		client.Write(Command{
-			Name: "error",
-			Data: "Improper Vote",
-		})
-		client.Close()
+		client.Error(errors.New("Improper vote"))
 		return
 	}
 	vote := fmt.Sprintf("%s", c.Data)
@@ -44,10 +32,7 @@ func VoteHandler(client *WsConn, c *Command){
 	hincr := p.HIncrBy(currentEvent, vote + "Votes", 1)
 	_, err := p.Exec()
 	if err != nil || set.Err() != nil || hincr.Err() != nil {
-		client.Write(Command{
-			Name: "error",
-			Data: err.Error(),
-		})
+		client.Error(errors.New("Pipeline Error"))
 		return
 	}
 	client.Write(Command{

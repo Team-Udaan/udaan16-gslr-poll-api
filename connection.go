@@ -43,13 +43,20 @@ func (w *WsConn)Close() error {
 	return nil
 }
 
-func (w *WsConn)Write(data interface{}) {
+func (w *WsConn) Write(data interface{}) {
 	err := w.Conn.WriteJSON(data)
 	if err != nil {
 		w.Close()
 	}
 }
 
+func (w *WsConn) Error(e error) {
+	w.Write(Command{
+		Name: "error",
+		Data: e,
+	})
+	w.Close()
+}
 type Clients struct {
 	Ws map[string]*WsConn
 }

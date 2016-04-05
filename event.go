@@ -38,10 +38,7 @@ func EventResponse(event string) (e *Event, err error) {
 func EventHandler(client *WsConn, c *Command) {
 	current, err := redisClient.Get("current").Result()
 	if err != nil {
-		client.Write(Command{
-			Name: "error",
-			Data: err.Error(),
-		})
+		client.Error(err)
 		return
 	}
 	voted, _ := redisClient.Get(client.mobile).Result()
@@ -54,10 +51,7 @@ func EventHandler(client *WsConn, c *Command) {
 	}
 	eventResponse, err := EventResponse(current)
 	if err != nil {
-		client.Write(Command{
-			Name: "error",
-			Data: err.Error(),
-		})
+		client.Error(err)
 		return
 	}
 	client.Write(Command{

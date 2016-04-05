@@ -20,16 +20,11 @@ func LoginHandler(client *WsConn, c *Command){
 		client.Authenticate(fmt.Sprintf("%s", m))
 		return
 	}
-	err := client.Conn.WriteJSON(Command{
+	client.Write(Command{
 		Name: "login",
 		Data: Data{
 			Status: false,
 			Message: "Invalid Username/Password Combination",
 		},
 	})
-	if err != nil {
-		fmt.Println(err)
-	}
-	client.Conn.Close()
-	clients.Remove(client)
 }

@@ -27,10 +27,7 @@ func Launch(ws *WsConn) {
 		default:
 			var c Command
 			if err := ws.Conn.ReadJSON(&c); err != nil {
-				ws.Write(Command{
-					Name: "error",
-					Data: err.Error(),
-				})
+				ws.Error(err)
 			}
 			if c.Name == "echo" {
 				fmt.Println("ECHO EVENT")
