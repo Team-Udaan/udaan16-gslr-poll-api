@@ -18,6 +18,5 @@ func WebSocketsHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 	}
 	ws := NewWsConn(conn)
-	clients.Add(&ws)
 	Connections <- &ws
 }
